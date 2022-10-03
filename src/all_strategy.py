@@ -1,0 +1,2 @@
+from kdj_strategy import KDJ_Strategy
+import macd_strategy

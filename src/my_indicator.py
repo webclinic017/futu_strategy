@@ -38,7 +38,6 @@ class PinNine(bt.indicators.PeriodN):
                     raise ValueError()
 
 
-
 class CusExponentialSmoothing(bt.indicators.Average):
     alias = ('ExpSmoothing',)
     params = (('alpha', None), ('first_value', 0), ('period', 3))
@@ -75,3 +74,16 @@ class CusExponentialSmoothing(bt.indicators.Average):
             prev = larray[start - 1]
         for i in range(start, end):
             larray[i] = prev = prev * alpha1 + darray[i] * alpha
+
+
+class KDJ(bt.Indicator):
+    lines = ("RSV", "K", "D", "J",)
+    params = (('period_me1', 3), ('period_me2', 3), ('period_signal', 9),)
+
+    def __init__(self):
+        self.l.high = bt.indicators.Highest(self.data.high, period=self.p.period_signal)
+        self.l.low = bt.indicators.Lowest(self.data.low, period=self.p.period_signal)
+        self.l.RSV = 100 * bt.DivByZero(self.data_close - self.l.low, self.l.high - self.l.low, zero=None)
+        self.l.K = CusExponentialSmoothing(self.l.RSV, period=self.p.period_me1, alpha=1 / 3, first_value=66.464)
+        self.l.D = CusExponentialSmoothing(self.l.K, period=self.p.period_me2, alpha=1 / 3, first_value=69.635)
+        self.l.J = 3 * self.l.K - 2 * self.l.D
